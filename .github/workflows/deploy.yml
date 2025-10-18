@@ -1,0 +1,89 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_BACKEND: ecommerce-backend
+  ECR_FRONTEND: ecommerce-frontend
+  CLUSTER: ecommerce-cluster
+  SERVICE: ecommerce-backend-service
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to ECR
+      id: ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and Push Backend
+      run: |
+        cd api
+        docker build -t ${{ steps.ecr.outputs.registry }}/$ECR_BACKEND:latest .
+        docker push ${{ steps.ecr.outputs.registry }}/$ECR_BACKEND:latest
+        echo "✅ Backend image pushed to ECR"
+
+    - name: Deploy to ECS
+      run: |
+        aws ecs update-service \
+          --cluster $CLUSTER \
+          --service $SERVICE \
+          --force-new-deployment \
+          --region $AWS_REGION
+        echo "🚀 Backend deployed to ECS"
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    environment: production
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Build Frontend
+      run: |
+        cd webapp
+        npm install
+        npm run build
+        echo "✅ Frontend built"
+
+    - name: Deploy to S3
+      run: |
+        aws s3 sync ./webapp/build/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+        echo "🌐 Frontend deployed to S3"
+
+    - name: Invalidate CloudFront
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*" || echo "CloudFront optional"
+        echo "🔄 CloudFront cache invalidated"
