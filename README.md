@@ -91,6 +91,8 @@ ________________________________________________________________________________
                                               PROJECT IMPLEMENTATION
 _______________________________________________________________________________________________________________________
 
+
+
 Phase 1: Initial Setup
 
 Step 1.1: Create Project Structure
@@ -108,6 +110,45 @@ mkdir -p .github/workflows api webapp/src webapp/public aws/scripts
 # Verify structure
 find . -type f
 
+
+```
+
+```
+ecommerce-platform/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                    # CI Pipeline
+│       └── deploy.yml                # AWS Deployment
+│
+├── api/                             # Backend API
+│   ├── __tests__/
+│   │   └── app.test.js              # Backend Tests
+│   ├── aws/
+│   │   └── scripts/
+│   │       ├── setup-aws.sh         # AWS Setup
+│   │       └── cleanup-aws.sh       # AWS Cleanup
+│   ├── Dockerfile                   # Backend Container
+│   ├── package.json                 # Dependencies
+│   ├── app.test.js                  # Additional Tests
+│   └── server.js                    # Express Server
+│
+├── webapp/                          # Frontend React App
+│   ├── public/
+│   │   └── index.html               # HTML Template
+│   ├── src/
+│   │   ├── App.css                  # Styles
+│   │   ├── App.js                   # React Components
+│   │   └── index.js                 # React Entry
+│   ├── Dockerfile                   # Frontend Container
+│   └── package.json                 # Dependencies
+│
+├── aws/                             # AWS Infrastructure
+│   └── scripts/
+│       ├── setup-aws.sh             # AWS Setup
+│       └── cleanup-aws.sh           # AWS Cleanup
+│
+├── .gitignore                       # Git Ignore Rules
+└── README.md                        # Documentation
 ```
 
 Step 1.2: Create Essential Files
@@ -1085,5 +1126,8 @@ Next Steps:
 <img width="2446" height="1242" alt="image" src="https://github.com/user-attachments/assets/283eb7e6-a809-4dd1-bccc-2630013db8ab" />
 
 <img width="1790" height="1272" alt="image" src="https://github.com/user-attachments/assets/394ce087-dd52-4f5e-ab4b-425697922b8c" />
+
+<img width="1826" height="858" alt="image" src="https://github.com/user-attachments/assets/15b2d27f-1761-4bc2-928e-0a9b2fd32c1e" />
+
 
 
